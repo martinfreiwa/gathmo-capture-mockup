@@ -62,6 +62,21 @@
   .rmimg{background:none;border:none;color:#b0463a;font-weight:600;font-size:12.5px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
   .imghint{font-size:11.5px;color:var(--soft)}
 
+  /* event type + colour */
+  .themeblock{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+  .tbrow{display:flex;gap:30px;flex-wrap:wrap;align-items:flex-end}
+  .tbcol{display:flex;flex-direction:column;gap:9px}
+  .lbl{font-size:12.5px;font-weight:600;color:var(--ink)}
+  .eventchips{display:flex;gap:8px;flex-wrap:wrap}
+  .echip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 14px;font-weight:600;font-size:13.5px;color:var(--ink);cursor:pointer;transition:.15s}
+  .echip:hover{border-color:var(--gold)}
+  .echip .dot{width:13px;height:13px;border-radius:50%;flex:none}
+  .echip.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}
+  .colorpick{display:flex;align-items:center;gap:10px}
+  .colorpick input[type=color]{width:44px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer;padding:2px}
+  .colorpick .hex{font-family:ui-monospace,SFMono-Regular,monospace;font-size:13px;color:var(--soft);min-width:74px;text-transform:uppercase}
+  .colorpick .creset{font-size:12.5px;font-weight:600;color:var(--gold-deep);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
   /* variant grid */
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-top:14px}
   .card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;cursor:pointer;transition:.18s;display:flex;gap:20px}
@@ -134,8 +149,24 @@
     </div>
 
     <!-- 1. TEXTS -->
-    <div class="sectitle"><h2 class="serif"><span class="secnum">1</span>Texte anpassen</h2><span class="hint">Wirkt sofort auf alle Vorschauen</span></div>
+    <div class="sectitle"><h2 class="serif"><span class="secnum">1</span>Look &amp; Inhalte</h2><span class="hint">Wirkt sofort auf alle Vorschauen</span></div>
     <div class="editor">
+      <div class="themeblock">
+        <div class="tbrow">
+          <div class="tbcol">
+            <span class="lbl">Event-Typ</span>
+            <div class="eventchips" id="eventChips"><!-- injected --></div>
+          </div>
+          <div class="tbcol">
+            <span class="lbl">Akzentfarbe</span>
+            <div class="colorpick">
+              <input type="color" id="colorInput" value="#B0894F" aria-label="Akzentfarbe">
+              <span class="hex" id="colorHex">#B0894F</span>
+              <button class="creset" id="colorReset" type="button">auf Event-Farbe</button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="fields" id="fields"><!-- injected --></div>
 
       <div class="imgfield">
@@ -191,7 +222,16 @@
   const K_STYLE = 'gathmo_capture_style';
   const K_TEXT  = 'gathmo_capture_texts';
   const K_COVER = 'gathmo_capture_cover';
+  const K_THEME = 'gathmo_capture_theme';
   const DEFAULT_COVER = `./d/img/couple.jpg`;  // the built-in sample cover
+
+  // event-type presets (accent / deep / soft)
+  const EVENTS = [
+    {key:'wedding',   name:'Hochzeit',     accent:'#B0894F', deep:'#8A6A39', soft:'#F4EBD9'},
+    {key:'birthday',  name:'Geburtstag',   accent:'#E0517E', deep:'#B23862', soft:'#FCE7EF'},
+    {key:'party',     name:'Party',        accent:'#7C5CD8', deep:'#5E3FB0', soft:'#ECE6FB'},
+    {key:'corporate', name:'Firmen-Event', accent:'#2F6FE0', deep:'#2256B8', soft:'#E6EEFC'},
+  ];
 
   let savedStyle = localStorage.getItem(K_STYLE) || 'B';
   let selected   = savedStyle;
@@ -200,6 +240,10 @@
   let savedTextsJSON = JSON.stringify(overrides);
   let coverImage = localStorage.getItem(K_COVER) || null;   // custom cover dataURL, or null = default
   let savedCover = coverImage;
+  let eventType = 'wedding';
+  let theme = { accent: EVENTS[0].accent, deep: EVENTS[0].deep, soft: EVENTS[0].soft };
+  try { const t = JSON.parse(localStorage.getItem(K_THEME) || 'null'); if (t && t.theme) { eventType = t.eventType || 'wedding'; theme = t.theme; } } catch(_) {}
+  let savedThemeJSON = JSON.stringify({ eventType, theme });
 
   // ---- build text fields ----
   const fieldsEl = document.getElementById('fields');
@@ -249,9 +293,53 @@
     if (win) { try { win.postMessage(msg, '*'); } catch(_){} return; }
     document.querySelectorAll('.frame iframe').forEach(f => { try { f.contentWindow.postMessage(msg, '*'); } catch(_){} });
   }
+  function broadcastTheme(win){
+    const msg = { type:'gathmo:theme', vars:{ '--gold': theme.accent, '--gold-deep': theme.deep, '--gold-soft': theme.soft } };
+    if (win) { try { win.postMessage(msg, '*'); } catch(_){} return; }
+    document.querySelectorAll('.frame iframe').forEach(f => { try { f.contentWindow.postMessage(msg, '*'); } catch(_){} });
+  }
   window.addEventListener('message', e => {
-    if (e.data && e.data.type === 'gathmo:ready') { broadcast(e.source); broadcastImage(e.source); }
+    if (e.data && e.data.type === 'gathmo:ready') { broadcast(e.source); broadcastImage(e.source); broadcastTheme(e.source); }
   });
+
+  // ---- event type + accent colour ----
+  function hexToRgb(h){ h=h.replace('#',''); if(h.length===3) h=h.split('').map(c=>c+c).join(''); const n=parseInt(h,16); return [n>>16&255, n>>8&255, n&255]; }
+  function rgbToHex(r,g,b){ return '#'+[r,g,b].map(x=>Math.max(0,Math.min(255,Math.round(x))).toString(16).padStart(2,'0')).join(''); }
+  function rgbToHsl(r,g,b){ r/=255;g/=255;b/=255; const mx=Math.max(r,g,b),mn=Math.min(r,g,b); let h,s,l=(mx+mn)/2; if(mx===mn){h=s=0;} else { const d=mx-mn; s=l>.5?d/(2-mx-mn):d/(mx+mn); switch(mx){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4;} h/=6; } return [h*360,s*100,l*100]; }
+  function hslToHex(h,s,l){ h/=360;s/=100;l/=100; let r,g,b; if(s===0){r=g=b=l;} else { const q=l<.5?l*(1+s):l+s-l*s, p=2*l-q; const f=(t)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p; }; r=f(h+1/3); g=f(h); b=f(h-1/3); } return rgbToHex(r*255,g*255,b*255); }
+  function lum(hex){ const [r,g,b]=hexToRgb(hex).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);}); return .2126*r+.7152*g+.0722*b; }
+  function whiteContrast(hex){ return 1.05/(lum(hex)+0.05); }
+  function deriveDeep(hex){ // darken until white button text is readable (>=4.5:1) for ANY hue
+    const [h,s]=rgbToHsl(...hexToRgb(hex)); const sat=Math.min(s+6,100);
+    let l=42, out=hslToHex(h,sat,l);
+    while(l>14 && whiteContrast(out)<4.6){ l-=3; out=hslToHex(h,sat,l); }
+    return out;
+  }
+  function deriveSoft(hex){ const [h,s]=rgbToHsl(...hexToRgb(hex)); return hslToHex(h, s*0.5, 93); }
+
+  const chipsEl = document.getElementById('eventChips');
+  EVENTS.forEach(ev => {
+    const b = document.createElement('button'); b.className = 'echip'; b.dataset.key = ev.key;
+    b.innerHTML = `<span class="dot" style="background:${ev.accent}"></span>${ev.name}`;
+    b.addEventListener('click', () => setEvent(ev.key));
+    chipsEl.appendChild(b);
+  });
+  const colorInput = document.getElementById('colorInput');
+  const colorHex = document.getElementById('colorHex');
+  function updateThemeUI(){
+    document.querySelectorAll('.echip').forEach(c => c.classList.toggle('on', c.dataset.key === eventType));
+    colorInput.value = theme.accent; colorHex.textContent = theme.accent;
+  }
+  function setEvent(key){
+    const ev = EVENTS.find(x => x.key === key); if (!ev) return;
+    eventType = key; theme = { accent: ev.accent, deep: ev.deep, soft: ev.soft };
+    updateThemeUI(); broadcastTheme(); updateSave();
+  }
+  colorInput.addEventListener('input', () => {
+    const v = colorInput.value; theme = { accent: v, deep: deriveDeep(v), soft: deriveSoft(v) };
+    colorHex.textContent = v; broadcastTheme(); updateSave();
+  });
+  document.getElementById('colorReset').addEventListener('click', () => setEvent(eventType));
 
   // ---- cover image upload (affects photo variants B & D) ----
   const imgPrev = document.getElementById('imgPrev');
@@ -317,7 +405,8 @@
     updateSave();
   }
   function updateSave(){
-    const dirty = (selected !== savedStyle) || (JSON.stringify(overrides) !== savedTextsJSON) || (coverImage !== savedCover);
+    const themeNow = JSON.stringify({ eventType, theme });
+    const dirty = (selected !== savedStyle) || (JSON.stringify(overrides) !== savedTextsJSON) || (coverImage !== savedCover) || (themeNow !== savedThemeJSON);
     const b = document.getElementById('saveBtn');
     b.disabled = !dirty; b.textContent = dirty ? 'Speichern' : 'Gespeichert';
   }
@@ -328,8 +417,10 @@
   });
   document.getElementById('saveBtn').addEventListener('click', () => {
     savedStyle = selected; savedTextsJSON = JSON.stringify(overrides); savedCover = coverImage;
+    savedThemeJSON = JSON.stringify({ eventType, theme });
     localStorage.setItem(K_STYLE, savedStyle);
     localStorage.setItem(K_TEXT, savedTextsJSON);
+    localStorage.setItem(K_THEME, savedThemeJSON);
     try { if (coverImage) localStorage.setItem(K_COVER, coverImage); else localStorage.removeItem(K_COVER); }
     catch(_) { /* image too large to persist in this mockup — stays for the session */ }
     const v = VARIANTS.find(x => x.id === savedStyle);
@@ -340,8 +431,9 @@
   });
 
   renderCover();
+  updateThemeUI();
   // initial broadcast fallback (in case some iframe loaded before its listener attached)
-  setTimeout(() => { broadcast(); broadcastImage(); }, 1200);
+  setTimeout(() => { broadcast(); broadcastImage(); broadcastTheme(); }, 1200);
   render();
 </script>
 </body>

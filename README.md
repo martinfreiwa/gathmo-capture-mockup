@@ -1,8 +1,8 @@
 # Gathmo — Capture-Seite Mockup (internal)
 
-Interner Design-Prototyp des Gäste-Capture-Flows + Kundenportal zur Auswahl.
+Interner Design-Prototyp des Gäste-Capture-Flows + Kundenportal.
 
-- `index.html` — Kundenportal: Variante wählen, Texte anpassen, Titelbild austauschen (Live-Vorschau)
+- `index.html` — Kundenportal: Stil + Event-Typ + Farbe + Texte + Titelbild (Live-Vorschau)
 - `a/ b/ c/ d/` — die vier Capture-Varianten (Keepsake, Immersive, Effortless, Portrait)
 
-Nicht das echte Produkt — reines Mockup. `noindex` gesetzt.
+Reines Mockup, nicht das echte Produkt. `noindex` gesetzt.

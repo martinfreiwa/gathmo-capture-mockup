@@ -135,10 +135,17 @@
     // swap the cover photo on the photo variants; '' reverts to the built-in default
     $$('[data-cover]').forEach(el => { el.style.backgroundImage = url ? 'url("' + url + '")' : ''; });
   }
+  function applyTheme(vars) {
+    // recolor the accent system (event-type preset or custom colour)
+    if (!vars) return;
+    const root = document.documentElement;
+    Object.keys(vars).forEach(k => vars[k] ? root.style.setProperty(k, vars[k]) : root.style.removeProperty(k));
+  }
   window.addEventListener('message', e => {
     const d = e.data; if (!d) return;
     if (d.type === 'gathmo:text') applyText(d.values);
     else if (d.type === 'gathmo:image') applyImage(d.value);
+    else if (d.type === 'gathmo:theme') applyTheme(d.vars);
   });
   // tell the portal we're ready to receive text overrides
   if (window.top !== window.self) {

@@ -189,7 +189,8 @@
   // ---- live text customization (driven by the portal via postMessage) ----
   function emphasize(str){const esc=String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');return esc.replace(/\*([^*]+)\*/g,'<em>$1</em>');}
   function applyText(values){if(!values)return;Object.keys(values).forEach(key=>{$$('[data-edit="'+key+'"]').forEach(el=>{if(key==='headline')el.innerHTML=emphasize(values[key]);else el.textContent=values[key];});});}
-  window.addEventListener('message',e=>{const d=e.data;if(d&&d.type==='gathmo:text')applyText(d.values);});
+  function applyTheme(vars){if(!vars)return;const root=document.documentElement;Object.keys(vars).forEach(k=>vars[k]?root.style.setProperty(k,vars[k]):root.style.removeProperty(k));}
+  window.addEventListener('message',e=>{const d=e.data;if(!d)return;if(d.type==='gathmo:text')applyText(d.values);else if(d.type==='gathmo:theme')applyTheme(d.vars);});
   if(window.top!==window.self){try{window.parent.postMessage({type:'gathmo:ready'},'*');}catch(_){}}
 })();
 </script>
