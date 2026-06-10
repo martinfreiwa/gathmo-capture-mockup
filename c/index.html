@@ -10,6 +10,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root{--paper:#FBF8F2;--paper-2:#F4EDE1;--card:#FFFFFF;--ink:#1C1710;--ink-soft:#6E6253;--line:#EAE0CE;--gold:#B0894F;--gold-deep:#8A6A39;--gold-soft:#F4EBD9}
+  html.dark{--paper:#14110D;--paper-2:#1E1A14;--card:#221C15;--ink:#F4EFE5;--ink-soft:#B8AE9E;--line:#352E24;--gold-soft:color-mix(in srgb, var(--gold) 16%, var(--card))}
+  html.dark .eyebrow, html.dark h1 em, html.dark .card .tile, html.dark .card .arr, html.dark .consent a, html.dark .powered b, html.dark .back, html.dark .bigdrop .tile, html.dark .twobtn button .ic, html.dark .link{color:var(--gold)}
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:Inter,system-ui,sans-serif;background:#E7E2D9;color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh;display:grid;place-items:center;padding:24px;line-height:1.5}
   .serif{font-family:Fraunces,Georgia,serif}
@@ -189,8 +191,8 @@
   // ---- live text customization (driven by the portal via postMessage) ----
   function emphasize(str){const esc=String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');return esc.replace(/\*([^*]+)\*/g,'<em>$1</em>');}
   function applyText(values){if(!values)return;Object.keys(values).forEach(key=>{$$('[data-edit="'+key+'"]').forEach(el=>{if(key==='headline')el.innerHTML=emphasize(values[key]);else el.textContent=values[key];});});}
-  function applyTheme(vars){if(!vars)return;const root=document.documentElement;Object.keys(vars).forEach(k=>vars[k]?root.style.setProperty(k,vars[k]):root.style.removeProperty(k));}
-  window.addEventListener('message',e=>{const d=e.data;if(!d)return;if(d.type==='gathmo:text')applyText(d.values);else if(d.type==='gathmo:theme')applyTheme(d.vars);});
+  function applyTheme(msg){if(!msg)return;const root=document.documentElement;const vars=msg.vars||{};Object.keys(vars).forEach(k=>vars[k]?root.style.setProperty(k,vars[k]):root.style.removeProperty(k));if(msg.mode)root.classList.toggle('dark',msg.mode==='dark');}
+  window.addEventListener('message',e=>{const d=e.data;if(!d)return;if(d.type==='gathmo:text')applyText(d.values);else if(d.type==='gathmo:theme')applyTheme(d);});
   if(window.top!==window.self){try{window.parent.postMessage({type:'gathmo:ready'},'*');}catch(_){}}
 })();
 </script>

@@ -76,6 +76,9 @@
   .colorpick input[type=color]{width:44px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer;padding:2px}
   .colorpick .hex{font-family:ui-monospace,SFMono-Regular,monospace;font-size:13px;color:var(--soft);min-width:74px;text-transform:uppercase}
   .colorpick .creset{font-size:12.5px;font-weight:600;color:var(--gold-deep);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .modetoggle{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .modetoggle button{border:none;background:var(--card);font-family:Inter;font-weight:600;font-size:13px;color:var(--soft);padding:9px 16px;cursor:pointer;transition:.15s}
+  .modetoggle button.on{background:var(--ink);color:#fff}
 
   /* variant grid */
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-top:14px}
@@ -165,6 +168,13 @@
               <button class="creset" id="colorReset" type="button">auf Event-Farbe</button>
             </div>
           </div>
+          <div class="tbcol">
+            <span class="lbl">Modus</span>
+            <div class="modetoggle" id="modeToggle">
+              <button data-mode="light" type="button">Hell</button>
+              <button data-mode="dark" type="button">Dunkel</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="fields" id="fields"><!-- injected --></div>
@@ -227,10 +237,10 @@
 
   // event-type presets (accent / deep / soft)
   const EVENTS = [
-    {key:'wedding',   name:'Hochzeit',     accent:'#B0894F', deep:'#8A6A39', soft:'#F4EBD9'},
-    {key:'birthday',  name:'Geburtstag',   accent:'#E0517E', deep:'#B23862', soft:'#FCE7EF'},
-    {key:'party',     name:'Party',        accent:'#7C5CD8', deep:'#5E3FB0', soft:'#ECE6FB'},
-    {key:'corporate', name:'Firmen-Event', accent:'#2F6FE0', deep:'#2256B8', soft:'#E6EEFC'},
+    {key:'wedding',   name:'Hochzeit',     accent:'#B0894F', deep:'#8A6A39', soft:'#F4EBD9', mode:'light', label:'the wedding of'},
+    {key:'birthday',  name:'Geburtstag',   accent:'#E0517E', deep:'#B23862', soft:'#FCE7EF', mode:'light', label:'the birthday of'},
+    {key:'party',     name:'Party',        accent:'#9B6BFF', deep:'#6A3FD0', soft:'#ECE6FB', mode:'dark',  label:'tonight'},
+    {key:'corporate', name:'Firmen-Event', accent:'#3B82F6', deep:'#1E5FD0', soft:'#E6EEFC', mode:'light', label:'presented by'},
   ];
 
   let savedStyle = localStorage.getItem(K_STYLE) || 'B';
@@ -241,9 +251,10 @@
   let coverImage = localStorage.getItem(K_COVER) || null;   // custom cover dataURL, or null = default
   let savedCover = coverImage;
   let eventType = 'wedding';
+  let mode = 'light';
   let theme = { accent: EVENTS[0].accent, deep: EVENTS[0].deep, soft: EVENTS[0].soft };
-  try { const t = JSON.parse(localStorage.getItem(K_THEME) || 'null'); if (t && t.theme) { eventType = t.eventType || 'wedding'; theme = t.theme; } } catch(_) {}
-  let savedThemeJSON = JSON.stringify({ eventType, theme });
+  try { const t = JSON.parse(localStorage.getItem(K_THEME) || 'null'); if (t && t.theme) { eventType = t.eventType || 'wedding'; theme = t.theme; mode = t.mode || 'light'; } } catch(_) {}
+  let savedThemeJSON = JSON.stringify({ eventType, theme, mode });
 
   // ---- build text fields ----
   const fieldsEl = document.getElementById('fields');
@@ -284,7 +295,9 @@
 
   // ---- messaging: push current text overrides into the previews ----
   function broadcast(win){
-    const msg = { type:'gathmo:text', values: overrides };
+    const ev = EVENTS.find(x => x.key === eventType);
+    const values = Object.assign({ label: (ev && ev.label) || 'the wedding of' }, overrides);
+    const msg = { type:'gathmo:text', values };
     if (win) { try { win.postMessage(msg, '*'); } catch(_){} return; }
     document.querySelectorAll('.frame iframe').forEach(f => { try { f.contentWindow.postMessage(msg, '*'); } catch(_){} });
   }
@@ -294,7 +307,9 @@
     document.querySelectorAll('.frame iframe').forEach(f => { try { f.contentWindow.postMessage(msg, '*'); } catch(_){} });
   }
   function broadcastTheme(win){
-    const msg = { type:'gathmo:theme', vars:{ '--gold': theme.accent, '--gold-deep': theme.deep, '--gold-soft': theme.soft } };
+    // in dark mode, omit --gold-soft so the variant's html.dark CSS computes a dark-appropriate tint
+    const vars = { '--gold': theme.accent, '--gold-deep': theme.deep, '--gold-soft': mode === 'dark' ? '' : theme.soft };
+    const msg = { type:'gathmo:theme', vars, mode };
     if (win) { try { win.postMessage(msg, '*'); } catch(_){} return; }
     document.querySelectorAll('.frame iframe').forEach(f => { try { f.contentWindow.postMessage(msg, '*'); } catch(_){} });
   }
@@ -328,13 +343,16 @@
   const colorHex = document.getElementById('colorHex');
   function updateThemeUI(){
     document.querySelectorAll('.echip').forEach(c => c.classList.toggle('on', c.dataset.key === eventType));
+    document.querySelectorAll('#modeToggle button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
     colorInput.value = theme.accent; colorHex.textContent = theme.accent;
   }
   function setEvent(key){
     const ev = EVENTS.find(x => x.key === key); if (!ev) return;
-    eventType = key; theme = { accent: ev.accent, deep: ev.deep, soft: ev.soft };
-    updateThemeUI(); broadcastTheme(); updateSave();
+    eventType = key; mode = ev.mode; theme = { accent: ev.accent, deep: ev.deep, soft: ev.soft };
+    updateThemeUI(); broadcastTheme(); broadcast(); updateSave();   // broadcast() also refreshes the event label
   }
+  function setMode(m){ mode = m; updateThemeUI(); broadcastTheme(); updateSave(); }
+  document.getElementById('modeToggle').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
   colorInput.addEventListener('input', () => {
     const v = colorInput.value; theme = { accent: v, deep: deriveDeep(v), soft: deriveSoft(v) };
     colorHex.textContent = v; broadcastTheme(); updateSave();
@@ -405,7 +423,7 @@
     updateSave();
   }
   function updateSave(){
-    const themeNow = JSON.stringify({ eventType, theme });
+    const themeNow = JSON.stringify({ eventType, theme, mode });
     const dirty = (selected !== savedStyle) || (JSON.stringify(overrides) !== savedTextsJSON) || (coverImage !== savedCover) || (themeNow !== savedThemeJSON);
     const b = document.getElementById('saveBtn');
     b.disabled = !dirty; b.textContent = dirty ? 'Speichern' : 'Gespeichert';
@@ -417,7 +435,7 @@
   });
   document.getElementById('saveBtn').addEventListener('click', () => {
     savedStyle = selected; savedTextsJSON = JSON.stringify(overrides); savedCover = coverImage;
-    savedThemeJSON = JSON.stringify({ eventType, theme });
+    savedThemeJSON = JSON.stringify({ eventType, theme, mode });
     localStorage.setItem(K_STYLE, savedStyle);
     localStorage.setItem(K_TEXT, savedTextsJSON);
     localStorage.setItem(K_THEME, savedThemeJSON);
