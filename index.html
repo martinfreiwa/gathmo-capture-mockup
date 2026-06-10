@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta name="robots" content="noindex,nofollow">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gathmo — Capture-Seite gestalten</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{--paper:#FAF8F3;--card:#FFFFFF;--ink:#1A1712;--soft:#6E6557;--line:#E7E0D1;--gold:#B0894F;--gold-deep:#8A6A39;--gold-soft:#F4EBD9;--ok:#2F8A5B}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,system-ui,sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5;padding-bottom:96px}
+  .serif{font-family:Fraunces,Georgia,serif}
+  a{color:inherit}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+
+  header{position:sticky;top:0;z-index:30;background:rgba(250,248,243,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .topin{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .brand{font-family:Fraunces;font-weight:600;font-size:22px}
+  .acct{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--soft)}
+  .acct .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(150deg,var(--gold),var(--gold-deep));color:#fff;display:grid;place-items:center;font-size:12px;font-family:Fraunces;font-weight:600}
+  .crumb{border-bottom:1px solid var(--line);background:var(--card)}
+  .crumbin{display:flex;align-items:center;gap:8px;height:46px;font-size:13px;color:var(--soft)}
+  .crumb b{color:var(--ink)}
+  .step{margin-left:auto;font-size:12px;letter-spacing:.04em;color:var(--soft)}
+  .step span{color:var(--gold-deep);font-weight:600}
+
+  .head{padding:32px 0 4px}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-deep);font-weight:600}
+  h1{font-family:Fraunces;font-weight:600;font-size:32px;line-height:1.08;letter-spacing:-.01em;margin:10px 0 8px}
+  .sub{font-size:16px;color:var(--soft);max-width:62ch}
+  .secnum{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--gold-deep);color:#fff;font-size:13px;font-weight:600;font-family:Inter;margin-right:10px}
+  .sectitle{display:flex;align-items:center;margin:34px 0 4px}
+  .sectitle h2{font-family:Fraunces;font-weight:600;font-size:24px}
+  .sectitle .hint{margin-left:auto;font-size:13px;color:var(--soft)}
+
+  /* text editor */
+  .editor{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;margin-top:14px}
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:16px 20px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field.full{grid-column:1 / -1}
+  .field label{font-size:12.5px;font-weight:600;color:var(--ink)}
+  .field .fh{font-size:11.5px;color:var(--soft);font-weight:400}
+  .field input,.field textarea{font-family:Inter;font-size:14.5px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:11px 13px;width:100%;transition:.15s;resize:none}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(176,137,79,.14)}
+  .field textarea{min-height:62px}
+  .editfoot{display:flex;align-items:center;margin-top:16px;gap:14px}
+  .editfoot .note{font-size:12.5px;color:var(--soft)}
+  .reset{margin-left:auto;font-size:13px;font-weight:600;color:var(--gold-deep);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+  /* cover image uploader */
+  .imgfield{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+  .imgrow{display:flex;align-items:center;gap:16px;margin-top:8px}
+  .imgprev{width:108px;height:88px;border-radius:13px;flex:none;background:#E7E2D9 center/cover no-repeat;border:1px solid var(--line);position:relative;overflow:hidden}
+  .imgprev .badge{position:absolute;left:0;right:0;bottom:0;background:rgba(20,16,10,.6);color:#fff;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;text-align:center;padding:3px}
+  .imgactions{display:flex;flex-direction:column;gap:7px;align-items:flex-start}
+  .upbtn{border:1px solid var(--line);background:var(--paper);border-radius:11px;padding:9px 16px;font-family:Inter;font-weight:600;font-size:13.5px;color:var(--ink);cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:8px}
+  .upbtn:hover{border-color:var(--gold)}
+  .upbtn svg{width:16px;height:16px;color:var(--gold-deep)}
+  .rmimg{background:none;border:none;color:#b0463a;font-weight:600;font-size:12.5px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .imghint{font-size:11.5px;color:var(--soft)}
+
+  /* variant grid */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-top:14px}
+  .card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;cursor:pointer;transition:.18s;display:flex;gap:20px}
+  .card:hover{border-color:var(--gold);box-shadow:0 18px 40px -28px rgba(120,80,40,.4)}
+  .card.sel{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold) inset,0 18px 40px -28px rgba(120,80,40,.45)}
+  .frame{width:200px;height:400px;flex:none;border-radius:30px;overflow:hidden;background:#E7E2D9;position:relative;box-shadow:0 10px 26px -14px rgba(60,40,20,.5)}
+  .frame iframe{width:440px;height:880px;border:0;transform:scale(.4545);transform-origin:top left;pointer-events:none;background:#E7E2D9}
+  .frame .mask{position:absolute;inset:0}
+  .meta{flex:1;display:flex;flex-direction:column;padding-top:4px}
+  .vlabel{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-deep);font-weight:600}
+  .vname{font-family:Fraunces;font-size:22px;font-weight:600;margin:4px 0 6px}
+  .vdesc{font-size:14px;color:var(--soft)}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .tag{font-size:11.5px;color:var(--soft);background:var(--gold-soft);border-radius:999px;padding:4px 10px}
+  .cardfoot{margin-top:auto;display:flex;align-items:center;gap:14px;padding-top:16px}
+  .open{font-size:13px;font-weight:600;color:var(--gold-deep);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:3px;display:inline-flex;align-items:center;gap:6px}
+  .radio{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;transition:.16s}
+  .radio svg{width:14px;height:14px;opacity:0;color:#fff;transition:.16s}
+  .card.sel .radio{background:var(--gold);border-color:var(--gold)}
+  .card.sel .radio svg{opacity:1}
+  .pickrow{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--soft)}
+  .card.sel .pickrow{color:var(--gold-deep)}
+  .activebadge{position:absolute;top:14px;right:14px;display:none;align-items:center;gap:5px;background:var(--ok);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px}
+  .card.active .activebadge{display:inline-flex}
+
+  .bar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
+  .barin{max-width:1080px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;gap:18px}
+  .barinfo{font-size:14px;color:var(--soft)}
+  .barinfo b{color:var(--ink);font-family:Fraunces;font-weight:600}
+  .baract{margin-left:auto;display:flex;gap:12px}
+  .btn{border:none;border-radius:12px;padding:12px 22px;font-family:Inter;font-weight:600;font-size:15px;cursor:pointer;transition:.16s;display:inline-flex;align-items:center;gap:8px}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+  .btn-ghost:hover{border-color:var(--gold)}
+  .btn-primary{background:var(--gold-deep);color:#fff;box-shadow:0 12px 24px -12px var(--gold-deep)}
+  .btn-primary:hover{filter:brightness(1.05)}
+  .btn-primary:disabled{background:var(--gold-soft);color:#c2b393;box-shadow:none;cursor:default}
+
+  .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 20px;border-radius:12px;font-size:14px;display:flex;align-items:center;gap:10px;opacity:0;pointer-events:none;transition:.3s;z-index:50;box-shadow:0 18px 40px -16px rgba(0,0,0,.5)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast .dot{width:20px;height:20px;border-radius:50%;background:var(--ok);display:grid;place-items:center;flex:none}
+  .toast svg{width:12px;height:12px;color:#fff}
+
+  @media(max-width:880px){
+    .fields{grid-template-columns:1fr}
+    .grid{grid-template-columns:1fr}.card{flex-direction:column}
+    .frame{width:100%;height:300px}.frame iframe{transform:scale(.78);transform-origin:top center;position:relative;left:50%;margin-left:-220px}
+  }
+</style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute"><defs>
+    <symbol id="ck" viewBox="0 0 24 24"><path d="M5 12.5l4.4 4.4L19 7.2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ext" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5l-8 8M11 5H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="up" viewBox="0 0 24 24"><path d="M12 16V5M7.5 9.5 12 5l4.5 4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs></svg>
+
+  <header>
+    <div class="wrap topin">
+      <div class="brand">Gathmo</div>
+      <div class="acct"><span>Sophie &amp; Liam</span><div class="av">S&amp;L</div></div>
+    </div>
+  </header>
+  <div class="crumb"><div class="wrap crumbin">Event-Setup · <b>Capture-Seite</b><span class="step">Schritt <span>3</span> von 4</span></div></div>
+
+  <main class="wrap">
+    <div class="head">
+      <div class="eyebrow">Capture-Seite gestalten</div>
+      <h1 class="serif">Gestalte die Seite, die deine Gäste sehen.</h1>
+      <p class="sub">Das ist die Seite, die sich öffnet, wenn ein Gast den QR-Code scannt. Passe die Texte an und wähle einen Stil — beide Vorschauen aktualisieren sich live. Alles lässt sich jederzeit ändern.</p>
+    </div>
+
+    <!-- 1. TEXTS -->
+    <div class="sectitle"><h2 class="serif"><span class="secnum">1</span>Texte anpassen</h2><span class="hint">Wirkt sofort auf alle Vorschauen</span></div>
+    <div class="editor">
+      <div class="fields" id="fields"><!-- injected --></div>
+
+      <div class="imgfield">
+        <label style="font-size:12.5px;font-weight:600;color:var(--ink)">Titelbild <span class="fh" style="font-size:11.5px;color:var(--soft);font-weight:400">· nur für Foto-Varianten (B &amp; D)</span></label>
+        <div class="imgrow">
+          <div class="imgprev" id="imgPrev"><span class="badge" id="imgBadge">Standard</span></div>
+          <div class="imgactions">
+            <button class="upbtn" id="upBtn" type="button"><svg><use href="#up"/></svg>Bild hochladen</button>
+            <button class="rmimg" id="rmImg" type="button" hidden>Eigenes Bild entfernen</button>
+            <div class="imghint">JPG oder PNG · wird automatisch zugeschnitten</div>
+          </div>
+          <input type="file" id="fileInput" accept="image/*" hidden>
+        </div>
+      </div>
+
+      <div class="editfoot">
+        <span class="note">Tipp: Schreibe ein Wort in *Sternchen*, um es kursiv &amp; golden hervorzuheben — z. B. <b>eure *Stimme*</b>.</span>
+        <button class="reset" id="resetText" type="button">Auf Standard zurücksetzen</button>
+      </div>
+    </div>
+
+    <!-- 2. STYLE -->
+    <div class="sectitle"><h2 class="serif"><span class="secnum">2</span>Stil wählen</h2><span class="hint">„Live ansehen" öffnet die Variante in voller Größe</span></div>
+    <div class="grid" id="grid"><!-- injected --></div>
+  </main>
+
+  <div class="bar"><div class="barin">
+    <div class="barinfo">Ausgewählt: <b id="selName">—</b></div>
+    <div class="baract">
+      <button class="btn btn-ghost" id="liveBtn">Live ansehen</button>
+      <button class="btn btn-primary" id="saveBtn" disabled>Speichern</button>
+    </div>
+  </div></div>
+
+  <div class="toast" id="toast"><span class="dot"><svg><use href="#ck"/></svg></span><span id="toastMsg">Gespeichert</span></div>
+
+<script>
+  const VARIANTS = [
+    {id:'A', port:4011, label:'Variante A', name:'Keepsake',  desc:'Ruhig & redaktionell. Kein Cover-Foto, viel Weißraum — zeitlos und edel.', tags:['Ohne Foto','Serifen-Eleganz','Dezent']},
+    {id:'B', port:4012, label:'Variante B', name:'Immersive', desc:'Euer Cover-Foto formatfüllend, Bedienung in einem Glas-Panel. App-Feeling.', tags:['Mit Foto','Vollbild','Premium']},
+    {id:'C', port:4013, label:'Variante C', name:'Effortless',desc:'Große Karten, maximal einfach. Ideal für Gäste jeden Alters.', tags:['Ohne Foto','Große Tap-Ziele','Barrierearm']},
+    {id:'D', port:4014, label:'Variante D', name:'Portrait',  desc:'Euer Paar-Foto als Magazin-Header. Emotional und persönlich.', tags:['Mit Foto','Foto-Header','Persönlich']},
+  ];
+  // editable fields. Placeholders mirror each variant's built-in defaults.
+  const FIELDS = [
+    {key:'names',    label:'Namen',          ph:'Sophie & Liam',                   type:'text'},
+    {key:'date',     label:'Datum / Ort',    ph:'14 June 2026 · Tuscany',          type:'text'},
+    {key:'headline', label:'Überschrift',    ph:'Leave them your *voice*.',        type:'text', full:true, hint:'*Wort* = kursiv & golden'},
+    {key:'lead',     label:'Untertitel',     ph:'A photo, a short video, or a voice message — no app needed.', type:'textarea', full:true},
+    {key:'button',   label:'Button-Text',    ph:'Add to their album',              type:'text'},
+  ];
+  const host = location.hostname || '127.0.0.1';
+  const K_STYLE = 'gathmo_capture_style';
+  const K_TEXT  = 'gathmo_capture_texts';
+  const K_COVER = 'gathmo_capture_cover';
+  const DEFAULT_COVER = `./d/img/couple.jpg`;  // the built-in sample cover
+
+  let savedStyle = localStorage.getItem(K_STYLE) || 'B';
+  let selected   = savedStyle;
+  let overrides  = {};
+  try { overrides = JSON.parse(localStorage.getItem(K_TEXT) || '{}'); } catch(_) { overrides = {}; }
+  let savedTextsJSON = JSON.stringify(overrides);
+  let coverImage = localStorage.getItem(K_COVER) || null;   // custom cover dataURL, or null = default
+  let savedCover = coverImage;
+
+  // ---- build text fields ----
+  const fieldsEl = document.getElementById('fields');
+  FIELDS.forEach(f => {
+    const wrap = document.createElement('div');
+    wrap.className = 'field' + (f.full ? ' full' : '');
+    const val = overrides[f.key] || '';
+    const control = f.type === 'textarea'
+      ? `<textarea data-field="${f.key}" rows="2" placeholder="${f.ph}">${val}</textarea>`
+      : `<input data-field="${f.key}" type="text" placeholder="${f.ph}" value="${val.replace(/"/g,'&quot;')}">`;
+    wrap.innerHTML = `<label>${f.label}${f.hint?` <span class="fh">· ${f.hint}</span>`:''}</label>${control}`;
+    fieldsEl.appendChild(wrap);
+  });
+
+  // ---- build variant cards ----
+  const grid = document.getElementById('grid');
+  VARIANTS.forEach(v => {
+    const url = `./${v.id.toLowerCase()}/`;
+    const card = document.createElement('div');
+    card.className = 'card'; card.dataset.id = v.id;
+    card.innerHTML = `
+      <div class="activebadge"><svg style="width:12px;height:12px"><use href="#ck"/></svg> Aktiv</div>
+      <div class="frame"><iframe src="${url}" title="${v.name}"></iframe><div class="mask"></div></div>
+      <div class="meta">
+        <div class="vlabel">${v.label}</div>
+        <div class="vname serif">${v.name}</div>
+        <div class="vdesc">${v.desc}</div>
+        <div class="tags">${v.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+        <div class="cardfoot">
+          <div class="pickrow"><span class="radio"><svg><use href="#ck"/></svg></span><span class="pickedlabel">Diesen Stil wählen</span></div>
+          <button class="open" data-url="${url}" type="button">Live ansehen <svg style="width:13px;height:13px"><use href="#ext"/></svg></button>
+        </div>
+      </div>`;
+    card.addEventListener('click', e => { if (e.target.closest('.open')) return; pick(v.id); });
+    grid.appendChild(card);
+  });
+  document.querySelectorAll('.open').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); window.open(b.dataset.url, '_blank'); }));
+
+  // ---- messaging: push current text overrides into the previews ----
+  function broadcast(win){
+    const msg = { type:'gathmo:text', values: overrides };
+    if (win) { try { win.postMessage(msg, '*'); } catch(_){} return; }
+    document.querySelectorAll('.frame iframe').forEach(f => { try { f.contentWindow.postMessage(msg, '*'); } catch(_){} });
+  }
+  function broadcastImage(win){
+    const msg = { type:'gathmo:image', value: coverImage || '' };
+    if (win) { try { win.postMessage(msg, '*'); } catch(_){} return; }
+    document.querySelectorAll('.frame iframe').forEach(f => { try { f.contentWindow.postMessage(msg, '*'); } catch(_){} });
+  }
+  window.addEventListener('message', e => {
+    if (e.data && e.data.type === 'gathmo:ready') { broadcast(e.source); broadcastImage(e.source); }
+  });
+
+  // ---- cover image upload (affects photo variants B & D) ----
+  const imgPrev = document.getElementById('imgPrev');
+  const imgBadge = document.getElementById('imgBadge');
+  const rmImg = document.getElementById('rmImg');
+  function renderCover(){
+    imgPrev.style.backgroundImage = `url("${coverImage || DEFAULT_COVER}")`;
+    imgBadge.textContent = coverImage ? 'Euer Bild' : 'Standard';
+    rmImg.hidden = !coverImage;
+  }
+  function scaleToDataURL(file, cb){
+    const img = new Image();
+    img.onload = () => {
+      const max = 1280; let w = img.naturalWidth, h = img.naturalHeight;
+      if (w > max || h > max){ const r = Math.min(max/w, max/h); w = Math.round(w*r); h = Math.round(h*r); }
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(img.src);
+      cb(c.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => cb(null);
+    img.src = URL.createObjectURL(file);
+  }
+  const fileInput = document.getElementById('fileInput');
+  document.getElementById('upBtn').addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files && fileInput.files[0]; if (!file) return;
+    scaleToDataURL(file, dataURL => {
+      if (!dataURL) return;
+      coverImage = dataURL; renderCover(); broadcastImage(); updateSave();
+    });
+    fileInput.value = '';
+  });
+  rmImg.addEventListener('click', () => {
+    coverImage = null; renderCover(); broadcastImage(); updateSave();
+  });
+
+  // ---- text input handling ----
+  fieldsEl.addEventListener('input', e => {
+    const el = e.target.closest('[data-field]'); if (!el) return;
+    const key = el.dataset.field; const v = el.value;
+    if (v.trim() === '') delete overrides[key]; else overrides[key] = v;
+    broadcast(); updateSave();
+  });
+  document.getElementById('resetText').addEventListener('click', () => {
+    overrides = {};
+    document.querySelectorAll('[data-field]').forEach(el => el.value = '');
+    // reload previews so they fall back to their built-in defaults
+    document.querySelectorAll('.frame iframe').forEach(f => { f.src = f.src; });
+    updateSave();
+  });
+
+  // ---- selection + save ----
+  function render(){
+    document.querySelectorAll('.card').forEach(c => {
+      const id = c.dataset.id;
+      c.classList.toggle('sel', id === selected);
+      c.classList.toggle('active', id === savedStyle);
+      c.querySelector('.pickedlabel').textContent = id === selected ? 'Ausgewählt' : 'Diesen Stil wählen';
+    });
+    const v = VARIANTS.find(x => x.id === selected);
+    document.getElementById('selName').textContent = `${v.name} (${v.label})`;
+    updateSave();
+  }
+  function updateSave(){
+    const dirty = (selected !== savedStyle) || (JSON.stringify(overrides) !== savedTextsJSON) || (coverImage !== savedCover);
+    const b = document.getElementById('saveBtn');
+    b.disabled = !dirty; b.textContent = dirty ? 'Speichern' : 'Gespeichert';
+  }
+  function pick(id){ selected = id; render(); }
+
+  document.getElementById('liveBtn').addEventListener('click', () => {
+    const v = VARIANTS.find(x => x.id === selected); window.open(`./${v.id.toLowerCase()}/`, '_blank');
+  });
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    savedStyle = selected; savedTextsJSON = JSON.stringify(overrides); savedCover = coverImage;
+    localStorage.setItem(K_STYLE, savedStyle);
+    localStorage.setItem(K_TEXT, savedTextsJSON);
+    try { if (coverImage) localStorage.setItem(K_COVER, coverImage); else localStorage.removeItem(K_COVER); }
+    catch(_) { /* image too large to persist in this mockup — stays for the session */ }
+    const v = VARIANTS.find(x => x.id === savedStyle);
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = `Gespeichert — „${v.name}" mit euren Inhalten`;
+    t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2600);
+    render();
+  });
+
+  renderCover();
+  // initial broadcast fallback (in case some iframe loaded before its listener attached)
+  setTimeout(() => { broadcast(); broadcastImage(); }, 1200);
+  render();
+</script>
+</body>
+</html>
